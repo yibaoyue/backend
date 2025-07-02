@@ -2,31 +2,44 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
-const storage = multer.diskStorage({
+// 确保上传目录存在
+const ensureUploadsDir = (subdir) => {
+  const dir = path.join(__dirname, '../uploads', subdir);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+};
+
+// LAS文件上传配置
+const lasStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '../../uploads/pointclouds');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
+    cb(null, ensureUploadsDir('las'));
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+    cb(null, `${Date.now()}-${file.originalname}`);
   }
 });
 
-const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['.las', '.laz'];
-  const ext = path.extname(file.originalname).toLowerCase();
-  if (allowedTypes.includes(ext)) {
-    cb(null, true);
+// 文件类型验证
+const checkFileType = (file, cb, allowedTypes) => {
+  const filetypes = new RegExp(allowedTypes.join('|'));
+  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
+
+  if (extname && mimetype) {
+    return cb(null, true);
   } else {
-    cb(new Error('Only LAS/LAZ files are allowed'));
+    cb(`Error: 只允许上传 ${allowedTypes.join(', ')} 格式文件!`);
   }
 };
 
-const upload = multer({ dest: 'uploads/' }); 
-
-module.exports = upload;
+module.exports = {
+  handleLasUpload: multer({
+    storage: lasStorage,
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB限制
+    fileFilter: (req, file, cb) => {
+      checkFileType(file, cb, ['.las']);
+    }
+  }).single('file')
+};

@@ -60,7 +60,7 @@ router.get("/estimated-diameter", async (req, res) => {
 });
 
 // 新增LAS文件上传接口
-router.post("../../upload/las", uploadLAS.single('lasFile'), async (req, res) => {
+router.post('/api/upload/las', uploadLAS.single('lasFile'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: "未上传文件" });

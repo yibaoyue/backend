@@ -1,16 +1,14 @@
 const express = require('express');
-const cors = require('cors');
 const { query, pool } = require('./server/db');
 const diameterRouter = require('./server/routes/diameter');
+const deleteRoutes = require('./server/routes/deleteRoutes');
+const cors = require('cors');  // 确保这行存在
 const config = require('./config/config');
-
+const uploadRoutes = require('./server/routes/uploadRoutes');
 // 创建Express应用
 const app = express();
-
-
-
 // 中间件
-app.use(cors());
+
 app.use(express.json());
 app.use(cors({
   origin: 'http://localhost:3000',  // 你的前端地址
@@ -18,7 +16,7 @@ app.use(cors({
 }));
 // 挂载路由
 app.use('/api', diameterRouter);
-
+app.use(deleteRoutes); // 挂载删除路由
 // 保留原有的树木数据接口
 app.get('/api/trees', async (req, res) => {
     try {

@@ -6,7 +6,7 @@ const uploadRoutes = require("./routes/uploadRoutes");
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+app.use(express.urlencoded({ extended: true }));
 // 挂载路由
 app.use('/api', diameterRouter);
 app.use('/api', uploadRoutes);
