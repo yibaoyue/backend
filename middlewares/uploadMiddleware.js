@@ -21,6 +21,16 @@ const lasStorage = multer.diskStorage({
   }
 });
 
+// 3DTiles上传配置
+const tilesStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, ensureUploadsDir('3dtiles'));
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  }
+});
+
 // 文件类型验证
 const checkFileType = (file, cb, allowedTypes) => {
   const filetypes = new RegExp(allowedTypes.join('|'));
@@ -40,6 +50,14 @@ module.exports = {
     limits: { fileSize: 100 * 1024 * 1024 }, // 100MB限制
     fileFilter: (req, file, cb) => {
       checkFileType(file, cb, ['.las']);
+    }
+  }).single('file'),
+
+  handle3DTilesUpload: multer({
+    storage: tilesStorage,
+    limits: { fileSize: 500 * 1024 * 1024 }, // 500MB限制
+    fileFilter: (req, file, cb) => {
+      checkFileType(file, cb, ['.json', '.3dtiles']);
     }
   }).single('file')
 };

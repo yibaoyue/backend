@@ -60,7 +60,8 @@ router.get("/estimated-diameter", async (req, res) => {
 });
 
 // 新增LAS文件上传接口
-router.post('/api/upload/las', uploadLAS.single('lasFile'), async (req, res) => {
+// 新增LAS文件上传接口
+router.post('/upload/las', uploadLAS.single('lasFile'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: "未上传文件" });
@@ -105,7 +106,6 @@ router.post('/api/upload/las', uploadLAS.single('lasFile'), async (req, res) => 
         });
     }
 });
-
 // 新增获取已上传LAS文件列表接口
 router.get("/las-files", async (req, res) => {
     try {
@@ -125,5 +125,31 @@ router.get("/las-files", async (req, res) => {
         });
     }
 });
+// 删除点云文件
+router.delete('/delete/:id', async (req, res) => {
+    try {
+        const id = req.params.id;
+        // 从数据库中删除记录
+        const deleteQuery = `
+            DELETE FROM point_clouds 
+            WHERE id = $1
+            RETURNING *
+        `;
+        const result = await db.query(deleteQuery, [id]);
 
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: '文件未找到' });
+        }
+
+        // 可以在这里添加删除实际文件的逻辑
+
+        res.json({ success: true, message: '文件删除成功' });
+    } catch (error) {
+        console.error('删除点云文件失败：', error);
+        res.status(500).json({ 
+            error: '文件删除处理失败',
+            details: error.message 
+        });
+    }
+});
 module.exports = router;
