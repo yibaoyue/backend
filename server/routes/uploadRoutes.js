@@ -1,21 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const uploadController = require('../../controllers/uploadController');
 const uploadMiddleware = require('../../middlewares/uploadMiddleware');
+const UploadController = require('../../controllers/uploadController');
 
-// LAS文件上传
-router.post('../../upload/las', 
-  uploadMiddleware.handleLasUpload,
-  uploadController.uploadLas
-);
-
-// 3DTiles文件上传
-router.post('../../upload/3dtiles', 
-  uploadMiddleware.handle3DTilesUpload,
-  uploadController.upload3DTiles
-);
-
-// 获取已上传文件列表
-router.get('/files', uploadController.getFiles);
+router.post('/upload', uploadMiddleware.single('file'), UploadController.uploadPointCloud);
+router.get('/list', UploadController.listPointClouds);
+router.get('/download/:id', UploadController.downloadPointCloud);
+router.delete('/delete/:id', UploadController.deletePointCloud);
 
 module.exports = router;

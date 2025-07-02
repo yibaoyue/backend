@@ -1,7 +1,7 @@
 const { Pool } = require('pg');
 const config = require('../config/config');
 
-const pool = new Pool(config.postgres);
+const pool = new Pool(config.postgres); // 确保和 config.js 一致
 
 // 测试数据库连接
 pool.query('SELECT NOW()', (err) => {

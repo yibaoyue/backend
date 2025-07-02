@@ -1,25 +1,21 @@
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
+const { query, pool } = require('./server/db');
 const diameterRouter = require('./server/routes/diameter');
 const config = require('./config/config');
 
 // 创建Express应用
 const app = express();
 
-// 创建PostgreSQL连接池
-const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'GIS',
-  password: 'postgres',
-  port: 5432,
-});
+
 
 // 中间件
 app.use(cors());
 app.use(express.json());
-
+app.use(cors({
+  origin: 'http://localhost:3000',  // 你的前端地址
+  methods: ['GET', 'POST', 'DELETE']  // 允许的方法
+}));
 // 挂载路由
 app.use('/api', diameterRouter);
 

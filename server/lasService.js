@@ -1,25 +1,25 @@
 const las = require('las-js');
 const fs = require('fs');
 
-module.exports = {
-  validateLas: async (filePath) => {
-    try {
-      const lasFile = new las.LASFile();
-      await lasFile.open(filePath);
-      
-      return {
-        valid: true,
-        metadata: {
-          pointCount: lasFile.header.pointCount,
-          bounds: lasFile.header.bounds,
-          version: lasFile.header.version
-        }
-      };
-    } catch (err) {
-      return {
-        valid: false,
-        error: err.message
-      };
-    }
+class LasService {
+  static async parseLasMetadata(filePath) {
+    return new Promise((resolve, reject) => {
+      try {
+        const lasReader = las.createReadStream(filePath);
+        const metadata = {
+          pointCount: lasReader.header.pointCount,
+          scale: lasReader.header.scale,
+          offset: lasReader.header.offset,
+          bounds: lasReader.header.bounds,
+          version: lasReader.header.versionAsString,
+          pointFormat: lasReader.header.pointFormat
+        };
+        resolve(metadata);
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
-};
+}
+
+module.exports = LasService;

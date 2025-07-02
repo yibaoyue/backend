@@ -1,39 +1,13 @@
-module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('files', {
-      id: {
-        type: Sequelize.UUID,
-        defaultValue: Sequelize.UUIDV4,
-        primaryKey: true
-      },
-      name: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      path: {
-        type: Sequelize.STRING,
-        allowNull: false
-      },
-      type: {
-        type: Sequelize.ENUM('LAS', '3DTiles'),
-        allowNull: false
-      },
-      metadata: {
-        type: Sequelize.JSONB
-      },
-      created_at: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-      },
-      updated_at: {
-        type: Sequelize.DATE,
-        allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
-      }
-    });
-  },
-  down: async (queryInterface) => {
-    await queryInterface.dropTable('files');
-  }
+exports.up = async (knex) => {
+  await knex.schema.createTable('point_clouds', (table) => {
+    table.increments('id').primary();
+    table.string('name', 255).notNullable();
+    table.string('path', 255).notNullable();
+    table.jsonb('metadata');
+    table.timestamp('uploaded_at').defaultTo(knex.fn.now());
+  });
+};
+
+exports.down = async (knex) => {
+  await knex.schema.dropTable('point_clouds');
 };

@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const diameterRouter = require('./server/routes/diameter');
+const uploadRouter = require('./server/routes/uploadRoutes');
+const config = require('./config/config');
 
 const app = express();
 
@@ -10,12 +12,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 路由
-app.use('/api', diameterRouter);
+app.use('/api/diameter', diameterRouter);
+app.use('/api/pointclouds', uploadRouter);
 
-// 错误处理中间件
+// 错误处理
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).send('服务器错误！');
+  res.status(500).json({ error: 'Internal Server Error' });
 });
 
 module.exports = app;
