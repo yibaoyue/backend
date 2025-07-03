@@ -1,33 +1,45 @@
-const pool = require('../server/db');
+const { Sequelize, DataTypes } = require('sequelize');
+const config = require('../config/config');
 
-class FileModel {
-  static async createPointCloud(name, path, metadata = {}) {
-    const query = `
-      INSERT INTO point_clouds (name, path, metadata)
-      VALUES ($1, $2, $3)
-      RETURNING *`;
-    const values = [name, path, metadata];
-    const { rows } = await pool.query(query, values);
-    return rows[0];
+// 明确指定方言为 postgres
+const sequelize = new Sequelize({
+  username: config.postgres.user,
+  host: config.postgres.host,
+  database: config.postgres.database,
+  password: config.postgres.password,
+  port: config.postgres.port,
+  dialect: 'postgres'
+});
+
+const File = sequelize.define('File', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    primaryKey: true
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  path: {
+    type: DataTypes.STRING,
+    allowNull: false
+  },
+  type: {
+    type: DataTypes.ENUM('LAS', '3DTiles'),
+    allowNull: false
+  },
+  metadata: {
+    type: DataTypes.JSONB // 用于存储LAS文件的元数据
   }
+}, {
+  tableName: 'files',
+  timestamps: true
+});
 
-  static async getAllPointClouds() {
-    const query = 'SELECT * FROM point_clouds ORDER BY uploaded_at DESC';
-    const { rows } = await pool.query(query);
-    return rows;
-  }
+// 测试连接
+sequelize.authenticate()
+  .then(() => console.log('PostgreSQL连接成功'))
+  .catch(err => console.error('PostgreSQL连接失败:', err));
 
-  static async getPointCloudById(id) {
-    const query = 'SELECT * FROM point_clouds WHERE id = $1';
-    const { rows } = await pool.query(query, [id]);
-    return rows[0];
-  }
-
-  static async deletePointCloud(id) {
-    const query = 'DELETE FROM point_clouds WHERE id = $1 RETURNING *';
-    const { rows } = await pool.query(query, [id]);
-    return rows[0];
-  }
-}
-
-module.exports = FileModel;
+module.exports = File;

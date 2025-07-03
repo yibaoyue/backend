@@ -7,29 +7,33 @@ exports.uploadLas = async (req, res) => {
       return res.status(400).json({ error: '未上传文件' });
     }
 
-    // 创建数据库记录
-    const newFile = await File.create({
-      name: req.file.originalname,
-      path: `/uploads/las/${req.file.filename}`,
-      type: 'LAS',
-      metadata: {
-        // 这里可以添加从LAS文件解析的元数据
-        size: req.file.size,
-        uploadedAt: new Date()
-      }
-    });
+    try {
+      const newFile = await File.create({
+        name: req.file.originalname,
+        path: `../uploads/las/${req.file.filename}`,
+        type: 'LAS',
+        metadata: {
+          size: req.file.size,
+          uploadedAt: new Date()
+        }
+      });
 
-    res.json({
-      success: true,
-      file: {
-        id: newFile.id,
-        name: newFile.name,
-        path: newFile.path,
-        type: newFile.type,
-        metadata: newFile.metadata
-      }
-    });
+      res.json({
+        success: true,
+        file: {
+          id: newFile.id,
+          name: newFile.name,
+          path: newFile.path,
+          type: newFile.type,
+          metadata: newFile.metadata
+        }
+      });
+    } catch (dbErr) {
+      console.error('数据库插入错误:', dbErr);
+      res.status(500).json({ error: '数据库插入错误', details: dbErr.message });
+    }
   } catch (err) {
+    console.error('上传处理错误:', err);
     res.status(500).json({ error: err.message });
   }
 };
