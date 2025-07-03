@@ -13,28 +13,16 @@ const sequelize = new Sequelize({
 
 const File = sequelize.define('File', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: Sequelize.UUIDV4,
+    type: DataTypes.INTEGER, // 改为 INTEGER 以匹配 SERIAL
+    autoIncrement: true,
     primaryKey: true
   },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  path: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  type: {
-    type: DataTypes.ENUM('LAS', '3DTiles'),
-    allowNull: false
-  },
-  metadata: {
-    type: DataTypes.JSONB // 用于存储LAS文件的元数据
-  }
+  name: DataTypes.STRING,
+  path: DataTypes.STRING,
+  metadata: DataTypes.JSONB
 }, {
-  tableName: 'files',
-  timestamps: true
+  tableName: 'point_clouds',  
+  timestamps: false // 禁用Sequelize自动时间戳
 });
 
 // 测试连接

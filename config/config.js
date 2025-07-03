@@ -8,6 +8,7 @@ module.exports = {
     port: 5432,
   },
   uploads: {
-    pointclouds: 'uploads/pointclouds'
+    las: 'uploads/las',
+    tiles: 'uploads/3dtiles'
   }
 };

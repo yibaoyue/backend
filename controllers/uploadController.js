@@ -1,5 +1,6 @@
 const File = require('../models/fileModel');
 const path = require('path');
+const LasService = require('../server/lasService');
 
 exports.uploadLas = async (req, res) => {
   try {
@@ -7,51 +8,61 @@ exports.uploadLas = async (req, res) => {
       return res.status(400).json({ error: '未上传文件' });
     }
 
-    try {
-      const newFile = await File.create({
-        name: req.file.originalname,
-        path: `../uploads/las/${req.file.filename}`,
-        type: 'LAS',
-        metadata: {
-          size: req.file.size,
-          uploadedAt: new Date()
-        }
-      });
+    // 解析LAS文件元数据
+    let metadata = {
+      size: req.file.size,
+      uploadedAt: new Date()
+    };
 
-      res.json({
-        success: true,
-        file: {
-          id: newFile.id,
-          name: newFile.name,
-          path: newFile.path,
-          type: newFile.type,
-          metadata: newFile.metadata
-        }
-      });
-    } catch (dbErr) {
-      console.error('数据库插入错误:', dbErr);
-      res.status(500).json({ error: '数据库插入错误', details: dbErr.message });
+    try {
+      // 添加LAS文件特有的元数据
+      const lasMetadata = await LasService.parseLasMetadata(req.file.path);
+      metadata = { ...metadata, ...lasMetadata };
+    } catch (parseError) {
+      console.error('解析LAS元数据失败:', parseError);
+      // 即使解析失败也继续，只使用基本元数据
     }
+
+    // 使用统一路径格式
+    const filePath = `/uploads/las/${req.file.filename}`;
+
+    // 创建数据库记录
+    const newFile = await File.create({
+      name: req.file.originalname,
+      path: filePath,
+      type: 'LAS',
+      metadata: metadata
+    });
+
+    res.json({
+      success: true,
+      file: {
+        id: newFile.id,
+        name: newFile.name,
+        path: filePath,
+        type: newFile.type,
+        metadata: newFile.metadata
+      }
+    });
   } catch (err) {
     console.error('上传处理错误:', err);
     res.status(500).json({ error: err.message });
   }
 };
 
-// 如果有 upload3DTiles 函数，也需要确保其正确性
 exports.upload3DTiles = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: '未上传文件' });
     }
 
-    // 创建数据库记录
+    const filePath = `/uploads/3dtiles/${req.file.filename}`;
+    
     const newFile = await File.create({
       name: req.file.originalname,
-      path: `/uploads/3dtiles/${req.file.filename}`,
+      path: filePath,
       type: '3DTiles',
       metadata: {
-        // 这里可以添加从3DTiles文件解析的元数据
         size: req.file.size,
         uploadedAt: new Date()
       }
@@ -62,7 +73,7 @@ exports.upload3DTiles = async (req, res) => {
       file: {
         id: newFile.id,
         name: newFile.name,
-        path: newFile.path,
+        path: filePath,
         type: newFile.type,
         metadata: newFile.metadata
       }
